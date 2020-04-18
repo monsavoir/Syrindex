@@ -10,7 +10,7 @@ def main():
     parser = argparse.ArgumentParser(description='Identify a bird\'s specie by its sing')
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-c', '--continent', help = 'Continent where the recording was made') #Default action = store
-    group.add_argument('-u', '--country', help = 'Country where the recording was made')
+    group.add_argument('-u', '--country', help = 'Country where the recording was made, (remplace space by underscore)')
     args = parser.parse_args()
 
     '''
@@ -28,22 +28,20 @@ def main():
 
     if args.country :
         if parsing.hasNumber(args.country):
-            raise TypeError("Country must be a string")
-        parsing.retrieveDatabase('cnt:'+args.country)
+            raise TypeError("Country cant contain number")
+        print(parsing.numberPerCountry('cnt:'+args.country))
 
 
     if args.continent:
         if parsing.hasNumber(args.continent):
-            raise TypeError("Continent must be a string")
+            raise TypeError("Continent cant contain number")
         try :
             print(args.continent)
-            for country in parsing.extendContinent(args.continent.lower()):
-                if parsing.retrieveDatabase('cnt:'+country) == '0':
-                    print(country)
-                #print(country)
-                #print(parsing.retrieveDatabase('cnt:'+country))
+            print(parsing.numberPerContinent(args.continent))
         except :
             print('Error: File',args.continent,'not found')
+
+    
 
 if __name__ == '__main__' :
     main()
