@@ -2,7 +2,7 @@
 
 import argparse
 import parsing
-import os.path
+import os
 
 def main():
 
@@ -13,6 +13,12 @@ def main():
     group.add_argument('-u', '--country', help = 'Country where the recording was made, (remplace space by underscore)')
     args = parser.parse_args()
 
+    if not os.path.isdir("./Continent/"):
+        os.mkdir("./Continent/")
+
+    if not os.path.isdir("./Species/"):
+        os.mkdir("./Species/")
+        
     '''
     #Check if the file exist
     if args.continent & os.path.isfile(args.continent.lower()):

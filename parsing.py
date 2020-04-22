@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 import requests
 from collections import defaultdict
+from collections import Counter
+import json
 
 def extendContinent(continent) :
-    file = open(continent, 'r')
+    file = open('./Continent/'+continent, 'r')
     countries = []
     for line in file:
         countries.append(line[:-1])
@@ -25,29 +27,23 @@ def speciePerCountry(response):
     numRec = int(numberRecordsPerCountry(response))
     for j in range(numPages-1):
         for i in range(500):
-            species[response.json()['recordings'][i]['gen'],response.json()['recordings'][i]['sp']]+=1
+            species[(response.json()['recordings'][i]['gen']+' '+response.json()['recordings'][i]['sp'])]+=1
         response = requests.get(response.request.url+'&page='+str(j+2))
     for i in range(numRec-500*(numPages-1)):
-        species[response.json()['recordings'][i]['gen'],response.json()['recordings'][i]['sp']]+=1
+        species[(response.json()['recordings'][i]['gen']+' '+response.json()['recordings'][i]['sp'])]+=1
     return species
 
 def perContinent(query):
-    countR = 0
-    countS = 0
+    filename = 'species'+query
     countries = extendContinent(query.lower())
+    species = defaultdict(int)
     for country in countries :
-        tempS = 0
-        tempR = 0
         print(country)
         response = retrieveDatabase('cnt:'+country)
-        speciePerCountry(response)
-        tempS = numberSpeciesPerCountry(response)
-        tempR = numberRecordsPerCountry(response)
-        print('Species',tempS)
-        countS += int(tempS)
-        print('Records',tempR)
-        countR += int(tempR)
-    return (countS,countR)
+        species = Counter(species) + Counter(speciePerCountry(response))
+    with open('./Species/'+filename+'.json', 'w') as fp:
+        jason = json.dump(species, fp)
+    return
 
 def retrieveDatabase(query):
     response = requests.get("https://www.xeno-canto.org/api/2/recordings?query="+query)
@@ -57,11 +53,32 @@ def listSpecies(outputfile):
     file = open(outputfile,'w')
     continent = ['africa','asia','europe','northamerica','oceania','southamerica']
 
+def mergeDic(listdic):
+    species = defaultdict(int)
+    for i in listdic:
+        with open('./Species/species'+i+'.json','r') as fp:
+            specie = json.load(fp)
+        species = Counter(species) + Counter(specie)
+    species = dict(species)
+    print(len(species))
+    print(sum(species.values()))
+    with open('./Species/grosdico.json','w') as fp:
+        json.dump(species, fp)
+    return
+
+def importJson(filename):
+    with open('./Species'+filename+'.json', 'r') as fp:
+        data = json.load(fp)
+    return data
 '''
-response = retrieveDatabase('cnt:denmark')
-dic = speciePerCountry(response)
-print(sorted(dic.values(),reverse=True))
-print(numberRecordsPerCountry(response))
-print(numberSpeciesPerCountry(response))
-'''
+perContinent('asia')
+perContinent('northamerica')
+perContinent('southamerica')
+perContinent('oceania')
 perContinent('europe')
+perContinent('africa')
+'''
+
+
+continent = ['africa','asia','europe','northamerica','oceania','southamerica']
+mergeDic(continent)
