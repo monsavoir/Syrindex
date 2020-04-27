@@ -19,6 +19,9 @@ def main():
     if not os.path.isdir("./Species/"):
         os.mkdir("./Species/")
         
+    if not os.path.isdir("./Results/"):
+        os.mkdir("./Results/")
+        
     '''
     #Check if the file exist
     if args.continent & os.path.isfile(args.continent.lower()):

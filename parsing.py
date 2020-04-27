@@ -3,6 +3,9 @@ import requests
 from collections import defaultdict
 from collections import Counter
 import json
+import matplotlib.pyplot as plt
+import numpy as np
+import math as m
 
 def extendContinent(continent) :
     file = open('./Continent/'+continent, 'r')
@@ -67,7 +70,7 @@ def mergeDic(listdic):
     return
 
 def importJson(filename):
-    with open('./Species'+filename+'.json', 'r') as fp:
+    with open('./Species/'+filename+'.json', 'r') as fp:
         data = json.load(fp)
     return data
 '''
@@ -79,6 +82,46 @@ perContinent('europe')
 perContinent('africa')
 '''
 
-
+'''
 continent = ['africa','asia','europe','northamerica','oceania','southamerica']
 mergeDic(continent)
+'''
+
+def visuDic(filename):
+    dic = importJson(filename)
+    x = []
+    for i in dic.values():
+        x.append(i)
+    x.sort()
+    x = np.array(x)
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(x)
+    ax.set(title = 'Visualisation du nombre d\'enregistrement pour chaque espèce (ordonné)',
+        ylabel = 'Nombre d\'occurence',
+        xlabel = 'Indice du dictionnaire')
+    plt.savefig('./Results/graphbrute.png')
+    plt.show()
+
+def betterVisuDic(filename):
+    dic = importJson(filename)
+    x = []
+    for i in dic.values():
+        x.append(m.log(i))
+    x.sort()
+    x = np.array(x)
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.plot(x)
+    ax.set(title = 'Visualisation du nombre d\'enregistrement pour chaque espèce (ordonné)',
+        ylabel = 'Nombre d\'occurence (log)',
+        xlabel = 'Indice du dictionnaire')
+    plt.savefig('./Results/graphrefined.png')
+    plt.show()
+
+def tangent(xa,xb,ya,yb):
+    return ((yb-ya)/(xb-xa))
+
+
+grodico = 'grosdico'
+betterVisuDic(grodico)
