@@ -6,6 +6,7 @@ import json
 import matplotlib.pyplot as plt
 import numpy as np
 import math as m
+from scipy.interpolate import UnivariateSpline
 
 def extendContinent(continent) :
     file = open('./Continent/'+continent, 'r')
@@ -80,9 +81,6 @@ perContinent('southamerica')
 perContinent('oceania')
 perContinent('europe')
 perContinent('africa')
-'''
-
-'''
 continent = ['africa','asia','europe','northamerica','oceania','southamerica']
 mergeDic(continent)
 '''
@@ -105,23 +103,34 @@ def visuDic(filename):
 
 def betterVisuDic(filename):
     dic = importJson(filename)
-    x = []
-    for i in dic.values():
-        x.append(m.log(i))
-    x.sort()
+    y = sorted(dic.values())
+    y[0] = m.log(y[0])
+    x = [0]
+    for i in range(1,len(y)):
+        x.append(i)
+        y[i] = m.log(y[i])
+    y = np.array(y)
     x = np.array(x)
+
+    xs = np.linspace(x.min(), x.max(), 300)
+    spl = UnivariateSpline(x, y , k = 3)
+    spl.set_smoothing_factor(10)
+
     fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.plot(x)
-    ax.set(title = 'Visualisation du nombre d\'enregistrement pour chaque espèce (ordonné)',
+    ax1 = fig.add_subplot(111)
+    #ax2 = fig.add_subplot(212)
+    ax1.plot(x[2000:],y[2000:],'ro', ms = 0.1)
+    ax1.plot(xs,spl(xs),'b')
+    spl = spl.derivative(n=2)
+    #ax2.plot(xs,spl(xs),'g')
+    ax1.set(title = 'Visualisation du nombre d\'enregistrement pour chaque espèce (ordonné)',
         ylabel = 'Nombre d\'occurence (log)',
         xlabel = 'Indice du dictionnaire')
+   # ax2.set(title = 'Dérivé seconde de la fonction',
+        #ylabel = 'y',
+        #xlabel = 'x')
     plt.savefig('./Results/graphrefined.png')
     plt.show()
-
-def tangent(xa,xb,ya,yb):
-    return ((yb-ya)/(xb-xa))
-
 
 grodico = 'grosdico'
 betterVisuDic(grodico)
