@@ -1,0 +1,10 @@
+Periparus ater 0
+Troglodytes troglodytes 1
+Hippolais polyglotta 2
+Turdus merula 3
+Turdus philomelos 4
+Fringilla coelebs 5
+Luscinia megarhynchos 6
+Parus major 7
+Erithacus rubecula 8
+Sylvia atricapilla 9
