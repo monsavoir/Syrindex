@@ -43,8 +43,6 @@ test = pd.read_csv('./test.csv', header = None)
 
 train['path'] = './Records10/'+train['filename']
 
-#submission = pd.read_csv('./sub.csv')
-
 
 print(train.head())
 
@@ -59,8 +57,6 @@ batch_size = 8
 seed_everything(SEED)
 device = torch.device('cuda')
 
-
-#Random sample of 10 birds to test code.
 classes = set(random.sample(train['specie'].unique().tolist(), 10)) 
 print(classes)
 
@@ -83,8 +79,6 @@ class BirdSoundDataset(Dataset):
                                               res_type='kaiser_fast')
             mels = librosa.feature.melspectrogram(y=audio, sr=SR,n_mels=N_MELS)
             return mels
-            # mels will be of shape (N_MELS, ceil(duration*SR/512)) 
-            # 512 here is default hop length
 
         except Exception as e:
             print("Error encountered while parsing file: ", path, e)
@@ -107,21 +101,14 @@ class BirdSoundDataset(Dataset):
         sample = {'label':label, 'features': mfcc, 'duration': duration}
         return sample
 
-# Train Val split
 train = train.sample(frac=1).reset_index(drop=True)
 train_len = int(len(train) * (1-FRAC))
 train_df = train.iloc[:train_len]
 valid_df = train.iloc[train_len:]
 print(train_df.shape, valid_df.shape)
 
-# Custom collect function to wrap sound features
 
 def collate_fn_wrap(batch):
-    '''
-    wraps batch of variable length
-    '''
-    
-    ## get sequence lengths
     lengths = [t['features'].shape[1] for t in batch]
     maxlen = max(lengths)
     
@@ -135,7 +122,6 @@ def collate_fn_wrap(batch):
     features = torch.stack([i['features'] for i in batch])
     return {'features':features, 'labels':labels}
 
-# prepare data loaders
 train_loader = torch.utils.data.DataLoader(BirdSoundDataset(train_df),
                                            batch_size=batch_size, 
                                            num_workers=4, 
@@ -231,7 +217,7 @@ def mixup_data(x, y, alpha=1.0, use_cuda=True):
 def mixup_criterion(y_a, y_b, lam):
     return lambda criterion, pred: lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
 
-# number of epochs to train the model
+# number of iteration
 n_epochs = 20
 
 valid_loss_min = np.Inf # track change in validation loss
@@ -248,9 +234,8 @@ for epoch in range(1, n_epochs+1):
     
     scheduler.step()
     
-    ###################
-    # train the model #
-    ###################
+    # train the model 
+
     model.train()
     
     bar = tqdm(train_loader, total=len(train_loader), leave=False)
@@ -273,9 +258,9 @@ for epoch in range(1, n_epochs+1):
         bar.set_postfix({'loss': loss.item()})
         train_loss += loss.item()*features.size(0)
         
-    ######################    
-    # validate the model #
-    ######################
+ 
+    # validate the model 
+
     with torch.no_grad():
         targets = []
         preds = []
@@ -293,7 +278,6 @@ for epoch in range(1, n_epochs+1):
             targets.extend(target.cpu().detach().numpy().tolist())
             preds.extend(pred.cpu().detach().numpy().tolist())
             
-            # update average validation loss
             valid_loss += loss.item()*features.size(0)
     
     acc = np.sum(np.array(preds) == np.array(targets)) / len(preds)
@@ -302,7 +286,6 @@ for epoch in range(1, n_epochs+1):
     train_loss = train_loss/len(train_loader.dataset)
     valid_loss = valid_loss/len(valid_loader.dataset)
         
-    # print training/validation statistics 
     print('Epoch: {} \tValidation Acc: {:.6f}'.format(epoch, acc))
     print('Training Loss: {:.6f} \tValidation Loss: {:.6f}'.format(train_loss, valid_loss))
     
